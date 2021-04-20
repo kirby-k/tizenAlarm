@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns="http://tizen.org/ns/packages" api-version="5.5" package="org.example.alarmproject" version="1.0.0">
+	<profile name="wearable" />
+	<ui-application appid="org.example.alarmproject" exec="alarmproject" type="capp" multiple="false" taskmanage="true" nodisplay="false">
+		<icon>alarmproject.png</icon>
+		<label>alarmproject</label>
+	</ui-application>
+</manifest>
