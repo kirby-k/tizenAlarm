@@ -643,7 +643,7 @@ main(int argc, char *argv[])
 	ui_app_add_event_handler(&handlers[APP_EVENT_LANGUAGE_CHANGED], APP_EVENT_LANGUAGE_CHANGED, ui_app_lang_changed, &ad);
 	ui_app_add_event_handler(&handlers[APP_EVENT_REGION_FORMAT_CHANGED], APP_EVENT_REGION_FORMAT_CHANGED, ui_app_region_changed, &ad);
 
-	ret = ui_app_main(argc, argv, &event_callback, &ad);
+	ret = ui_app_main(argc, argv, &event_callback, &ad);    // create is called which starts gui
 	if (ret != APP_ERROR_NONE) {
 		dlog_print(DLOG_ERROR, LOG_TAG, "app_main() is failed. err = %d", ret);
 	}
