@@ -1,0 +1,5 @@
+set sysroot /home/kirby/tizen-studio/tools/smart-build-interface/../../platforms/tizen-5.5/wearable/rootstraps/wearable-5.5-emulator.core
+set debug-file-directory /home/kirby/tizen-studio/tools/smart-build-interface/../../platforms/tizen-5.5/wearable/rootstraps/wearable-5.5-emulator.core/usr/lib/debug
+set solib-search-path /home/kirby/tizen-studio-data/workspace/alarmProject/Debug
+dir /home/kirby/tizen-studio/tools/smart-build-interface/../../platforms/tizen-5.5/wearable/rootstraps/wearable-5.5-emulator.core/usr/src/debug
+sharedlibrary
