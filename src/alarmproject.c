@@ -185,66 +185,80 @@ void okButtonClick(void* data, Evas_Object* obj, void* eventInfo) {
 	elm_object_style_set(okButton, "bottom");	// bottom style puts it in the bottom middle of its parent object
 	evas_object_size_hint_align_set(okButton, .5,1);	// sets general alignment for object using x,y coords
 														// but will only take effect if it can be placed in that area
-	evas_object_smart_callback_add(okButton, "clicked", backButtonClick, navi);	//
-	evas_object_show(okButton);
+	evas_object_smart_callback_add(okButton, "clicked", backButtonClick, navi);	// adds function to be called when
+																				// button is clicked
+	evas_object_show(okButton);	// makes button visible
 
 
-	app_control_h app_control;
-    app_control_create(&app_control);
-    app_control_set_operation(app_control, APP_CONTROL_OPERATION_ALARM_ONTIME);
-    app_control_set_app_id(app_control, "org.example.alarmproject");
+	app_control_h app_control;	// app_control allows us to call other applications
+    app_control_create(&app_control);	// specializes app_control
+    app_control_set_operation(app_control, APP_CONTROL_OPERATION_ALARM_ONTIME);		// operation is like a tag which
+    																				// tells the program what's going
+    																				// on when another app is called
+    app_control_set_app_id(app_control, "org.example.alarmproject");	// sets app to be called when app_control is
+    																	// invoked
+    /* P.S. calling the actual alarm app was disabled in tizen 3.0 (but they didn't bother telling anyone) */
 
-	alarm_get_current_time(&alarmTime);
-	elm_datetime_value_get(timeSelect, &alarmTime);
+	alarm_get_current_time(&alarmTime);		// complains if alarmTime is uninitialized
+	elm_datetime_value_get(timeSelect, &alarmTime);		// stores time input into alarmTime
 
-	alarm_get_current_time(&tmpTime);
-	elm_datetime_value_get(dateSelect, &tmpTime);
+	alarm_get_current_time(&tmpTime);	// complains if tmpTime is uninitialized
+	elm_datetime_value_get(dateSelect, &tmpTime);	// stores date input into tmpTime
 
+	// moves date input which was stored in tmpTime to our desired object, alarmTime
+	// If you simply were to set alarmTime = tmpTime, the hours, minutes, and seconds would be overwritten
+	// so you need an inbetween object to hold the date
 	alarmTime.tm_year = tmpTime.tm_year;
 	alarmTime.tm_mon = tmpTime.tm_mon;
 	alarmTime.tm_mday = tmpTime.tm_mday;
-	alarmTime.tm_sec = 0;
+	alarmTime.tm_sec = 0;	// alarm will go off as soon as the minute is reached
 
-	/*// rapid fire testing REMOVE
+	/* rapid fire testing
+
 	struct tm test;
 	alarm_get_current_time(&test);
 	test.tm_sec += 5;
+
 */
 
+	alarmList[refALARMID] = alarmTime;	// puts alarm in alarmList
 
-	alarmList[refALARMID] = alarmTime;
-
-	alarm_schedule_once_at_date(app_control, &alarmTime, &ALARMID);
-
+	alarm_schedule_once_at_date(app_control, &alarmTime, &ALARMID);		// ALARMID is destroyed in this function, but we
+																		// don't need to know what it is anyway
 	refALARMID++;
 	ALARMID++;
 
+	// logs for my sanity
 	char log[50];
 	int l;
 	l = refALARMID;
-	sprintf(log, "OKBUTTON refALARMID: %d", l);
-	dlog_print(DLOG_INFO, "check", log);
+	sprintf(log, "OKBUTTON refALARMID: %d", l);		// sprintf stores the pseudo-format string into log
+	dlog_print(DLOG_INFO, "check", log);	// prints to device-manager logs
 
+	/* P.S. using refALARMID doesn't work for some reason, you must make a new int and set it equal to the desired variable */
+
+	// push new okScreen onto the stack so it becomes visible
 	Elm_Object_Item* okScreen = elm_naviframe_item_push(navi, "Alarm set!", NULL, NULL, okButton, NULL);
-
 }
 
 void alarmMenu(void* data, Evas_Object* obj, void* eventInfo) {
 
-	Elm_Object_Item* alarmScreen;
-	Evas_Object* parentBox;
-	Evas_Object* buttonBox;
-    Evas_Object* alarmBox;
-    Evas_Object* alarmScroll;
+	Elm_Object_Item* alarmScreen;	// new screen
+	Evas_Object* parentBox;		// box that holds child boxes
+	Evas_Object* buttonBox;		// box for buttons
+    Evas_Object* alarmBox;		// box for dateTime inputs
+    Evas_Object* alarmScroll;	// allows for scrolling
 
-    alarmScroll = elm_scroller_add(navi);
-	evas_object_show(alarmScroll);
+    alarmScroll = elm_scroller_add(navi);	// specializes scroll object
+	evas_object_show(alarmScroll);	// makes it visible
 
 	parentBox = elm_box_add(alarmScroll);
-	evas_object_size_hint_weight_set(parentBox, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	evas_object_size_hint_weight_set(parentBox, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);	// same as alignment but called
+																						// weight for some reason
 	evas_object_show(parentBox);
-	elm_object_content_set(alarmScroll, parentBox);
-	elm_box_padding_set(parentBox, 0,10);
+	elm_object_content_set(alarmScroll, parentBox);		// sets parentBox to be inside of alarmScroll
+														// (only required for objects that hold other objects)
+	elm_box_padding_set(parentBox, 0,10);	// padding for elements inside of box
 
     alarmBox = elm_box_add(parentBox);
 	evas_object_size_hint_weight_set(alarmBox, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
@@ -258,14 +272,17 @@ void alarmMenu(void* data, Evas_Object* obj, void* eventInfo) {
 	elm_box_padding_set(buttonBox, 0,30);
 
 
-	dateSelect = elm_datetime_add(alarmBox);
+	dateSelect = elm_datetime_add(alarmBox);	// specializes dateSelect into a new dateTime input field
 
-	//sets hour and minute as visible, and others as invisible
+	//sets hour and minute inputs as visible, and others as invisible
 	elm_datetime_field_visible_set(dateSelect, ELM_DATETIME_DATE, EINA_TRUE);
 	elm_datetime_field_visible_set(dateSelect, ELM_DATETIME_MONTH, EINA_TRUE);
 	elm_datetime_field_visible_set(dateSelect, ELM_DATETIME_YEAR, EINA_TRUE);
 
+	// sets format of input fields
+	// complete list of format styles: https://docs.tizen.org/application/native/api/mobile/5.5/group__Elm__Datetime.html
 	elm_datetime_format_set(dateSelect, "%b, %d, %Y");
+	// sets style for date selection (removes ':', 'hr', 'min')
 	elm_object_style_set(dateSelect, "datepicker_layout");
 
 	evas_object_show(dateSelect);
@@ -280,9 +297,13 @@ void alarmMenu(void* data, Evas_Object* obj, void* eventInfo) {
     elm_datetime_field_visible_set(timeSelect, ELM_DATETIME_AMPM, EINA_FALSE);
 
 
-    elm_object_style_set(timeSelect, "timepicker/circle");
+    // this style is completely hidden from tizen's documentation, like much of the important features
+    // any other style will make the hour and minute selection go up to 99 instead of 23 & 59 respectively
+    elm_object_style_set(timeSelect, "timepicker/circle");	// grr i hate samsung
+
     elm_datetime_format_set(timeSelect, "%R");
 
+    // this places the time selection below the date selection (x,y coords)
     evas_object_size_hint_align_set(timeSelect, -5,0);
     evas_object_show(timeSelect);
 
@@ -303,6 +324,8 @@ void alarmMenu(void* data, Evas_Object* obj, void* eventInfo) {
 	evas_object_show(backButton);
 
 
+	// after adding the elements to their parent boxes, you must also pack them into the boxes in the order that you
+	// want them to appear on the screen, for some reason
 	elm_box_pack_end(alarmBox, dateSelect);
 	elm_box_pack_end(alarmBox, timeSelect);
 	elm_box_pack_end(buttonBox, okButton);
@@ -336,11 +359,13 @@ void alarmListMenu(void* data, Evas_Object* obj, void* eventInfo) {
 	elm_object_content_set(alarmScroll, parentBox);
 	//elm_box_padding_set(parentBox, 0,10);
 
-	aList = elm_list_add(parentBox);
+	aList = elm_list_add(parentBox);	// list object can hold characters and character arrays
 	evas_object_size_hint_weight_set(aList, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
 	evas_object_size_hint_align_set(aList, EVAS_HINT_FILL, EVAS_HINT_FILL);
 
+	// loops through all alarms in the alarmList
 	for (int i = 0; i < refALARMID; i++) {
+		// quick log for my sanity
 		char log[50];
 		int l;
 		l = refALARMID;
@@ -348,14 +373,15 @@ void alarmListMenu(void* data, Evas_Object* obj, void* eventInfo) {
 		dlog_print(DLOG_INFO, "check", log);
 
 		char c [50];
-		int year = alarmList[i].tm_year + 1900;
+		int year = alarmList[i].tm_year + 1900;		// year is stored as "years since 1900" so this makes it look
+													// like what you would expect
 		int month = alarmList[i].tm_mon;
 		int day = alarmList[i].tm_mday;
 		int hr = alarmList[i].tm_hour;
 		int min = alarmList[i].tm_min;
 
-		sprintf(c, "%d/%d/%d %d:%d", month, day, year, hr, min);
-		elm_list_item_append(aList, c, NULL, NULL, NULL, NULL);
+		sprintf(c, "%d/%d/%d %d:%d", month, day, year, hr, min);	// each alarm is stored as a char array
+		elm_list_item_append(aList, c, NULL, NULL, NULL, NULL);		// add each char array to my list
 	}
 	evas_object_show(aList);
 
@@ -368,12 +394,16 @@ void alarmListMenu(void* data, Evas_Object* obj, void* eventInfo) {
 	elm_box_pack_end(parentBox, aList);
 	elm_box_pack_end(parentBox, backButton);
 
-
-
 	alarmListScreen = elm_naviframe_item_push(navi, "Alarm List", NULL, NULL, alarmScroll, NULL);
 }
 
 void nudgeMenu(void* data, Evas_Object* obj, void* eventInfo) {
+
+	// currently not implemented
+	/* this feature will allow the user to set an interval, and on each time around it will vibrate with a unique
+	 * pattern, hopefully reminding them of a certain task to do, like drinking water
+	 */
+
 	Evas_Object* backButton;
 	Elm_Object_Item* nudgeScreen;
 
@@ -475,18 +505,23 @@ app_create(void *data)
 	return true;
 }
 
+/* app_control is called when the scheduler calls the app ID we set in app_control_h above
+* because the app ID is this specific project, it calls itself and lands in this app_control function, however
+* this is a separate instance from our original application, so no data is carried over */
 static void
 app_control(app_control_h app_control, void *data)
 {
-	dlog_print(DLOG_ERROR, "check", "here, but not really [cringe]");
+
+	dlog_print(DLOG_ERROR, "check", "just arrived in app_control");
 
 	char* op;
 	app_control_get_operation(app_control, &op);
 	dlog_print(DLOG_INFO, LOG_TAG, "operation = %s", op);
 
+	// compares the operation passed in through app_control (the variable) to the expected operation, which is
+	// alarm_ontime. this makes sure that the alarm code is called only when the alarm operation is set
 	if (!strncmp(APP_CONTROL_OPERATION_ALARM_ONTIME, op, strlen(APP_CONTROL_OPERATION_ALARM_ONTIME))) {
-		dlog_print(DLOG_ERROR, "check", "right where I want to be [cringe]");
-
+		dlog_print(DLOG_ERROR, "check", "nice, the alarm went off as planned");
 
 		Evas_Object* box;
 		box = elm_box_add(navi);
@@ -509,30 +544,25 @@ app_control(app_control_h app_control, void *data)
 		evas_object_size_hint_align_set(dismissButton, .5,1);
 		evas_object_smart_callback_add(dismissButton, "clicked", dismissButtonClick, navi);
 
-		/*
-		Evas_Object* okButton;
-		okButton = elm_button_add(data);
-		elm_object_text_set(okButton, "OK");
-		elm_object_style_set(okButton, "bottom");
-		evas_object_size_hint_align_set(okButton, .5,1);
-		evas_object_smart_callback_add(okButton, "clicked", backButtonClick, data);
-		evas_object_show(okButton);
-*/
-
 		evas_object_show(dismissButton);
 
 		elm_box_pack_end(box, label);
 		elm_box_pack_end(box, dismissButton);
 
 
-		player_h player;
-		player_create(&player);
-		sound_stream_info_h stream_info;
+		player_h player;	// create player which handles sound
+		player_create(&player);		// specializes player
+		sound_stream_info_h stream_info;	// stream for something (no info on tizen docs)
+		// sets stream to handle audio
 	    sound_manager_create_stream_information(SOUND_STREAM_TYPE_MEDIA, NULL, NULL, &stream_info);
 
-	    //japan default ringing
+	    //phone ringing sound
+	    /* thought this would be pretty funny, and guess what? it is. It's subtle enough to not be noticeable, but if
+	     * someone does notice it then it'll be an interesting conversation piece, or something
+	     */
+	    // starts playing tone
 	    tone_player_start_new(TONE_TYPE_CDMA_NETWORK_USA_RINGBACK, stream_info, -1, &startToneId);
-	    startToneId++;
+	    startToneId++;	// increment startToneID so I know how many tones are playing at any time
 
 		Elm_Object_Item* dismissScreen = elm_naviframe_item_push(navi, "Alarm!", NULL, NULL, box, NULL);
 	}
@@ -620,3 +650,4 @@ main(int argc, char *argv[])
 
 	return ret;
 }
+/* ~650 lines */
